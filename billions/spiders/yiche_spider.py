@@ -71,6 +71,6 @@ class yicheSpider(scrapy.Spider):
         CarBrandList = response.xpath("//a[@class='car-item-jump']/text()").getall()
         # print(response.meta['CarBrandName'] + ":" + response.meta['price'] + "/n")
         YiCheItem = response.meta['YiCheItem']
-        YiCheItem['CarBradList'] = CarBrandList
+        YiCheItem['CarBrandList'] = CarBrandList
         yield YiCheItem
 
