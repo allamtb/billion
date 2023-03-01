@@ -61,14 +61,19 @@ DOWNLOADER_MIDDLEWARES = {
 #EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
-IMAGES_STORE = '/path/to/valid/dir'
+IMAGES_STORE = 'image'
+
+IMAGES_THUMBS = {
+    'home': (270, 270),
+}
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+DOWNLOAD_DELAY = 2  # delay in downloading images
 ITEM_PIPELINES = {
-   'scrapy.pipelines.images.ImagesPipeline': 1,
-   'billions.pipelines.BillionsPipeline': 300,
-}
+    'billions.pipelines.BillionsImagePipeline':1,
+    'billions.pipelines.BillionsHtmlContentPipeline':2,
+    }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

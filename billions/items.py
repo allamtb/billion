@@ -24,3 +24,15 @@ class YiCheItem(scrapy.Item):
     vendorImg = Field()
     CarBrandList = Field()
 
+class D1evItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    newsUrl = Field()
+    homeTuUrl = Field()
+    image_urls = Field()
+    images = Field()
+    image_path= Field(default='D1ev')
+    wjj = Field()
+    html_content = Field()
+
+
