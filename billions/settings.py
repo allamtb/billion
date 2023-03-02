@@ -75,6 +75,7 @@ ITEM_PIPELINES = {
     'billions.pipelines.BillionsImagePipeline':1,
     'billions.pipelines.BillionsHtmlReplaceImagePathPipeline': 2,
     'billions.pipelines.BillionsNoHtmlTagPipeline': 3,
+    'billions.pipelines.BillionsCaiPipeline': 4,
 
 
     }
