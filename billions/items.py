@@ -34,5 +34,8 @@ class D1evItem(scrapy.Item):
     image_path= Field(default='D1ev')
     wjj = Field()
     html_content = Field()
+    imiao =Field()
+    itit = Field()
+
 
 

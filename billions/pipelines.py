@@ -8,6 +8,8 @@
 from io import BytesIO
 from pathlib import Path
 
+import MySQLdb
+from MySQLdb import _mysql
 from PIL import Image
 from scrapy import Selector
 from scrapy.pipelines.images import ImagesPipeline, ImageException
@@ -15,6 +17,9 @@ import re
 import os
 from twisted.enterprise import adbapi
 
+
+# 下载图片、缩略图
+from billions.util.htmlUtil import imiao, noHtml
 
 
 class BillionsImagePipeline(ImagesPipeline):
@@ -49,7 +54,8 @@ class BillionsImagePipeline(ImagesPipeline):
             yield thumb_path, thumb_image, thumb_buf
 
 
-class BillionsHtmlReplaceImagePathPipeline():
+# 替换文章中图片的路径
+class BillionsReplaceImage1PathPipeline():
     def process_item(self, item, spider):
 
         html_content = item.get("html_content")
@@ -72,14 +78,24 @@ class BillionsHtmlReplaceImagePathPipeline():
 class BillionsNoHtmlTagPipeline():
     def process_item(self, item, spider):
         html_content = item.get("html_content")
-        # 对文章进行 nohtml 处理
-        html_content = re.sub(r"<(.[^>]*)>", "", html_content)
-        html_content = re.sub(r"\r", "", html_content)
-        html_content = re.sub(r"\t", "", html_content)
-        for i in range(20):
-            html_content = re.sub(r"  ", " ", html_content)
+        item["html_content"] =  noHtml(html_content)
+        return item
 
+
+# 替换文章中图片的路径回来，同时添加上 tag 信息
+class BillionsReplaceImage2PathPipeline():
+    def process_item(self, item, spider):
+        html_content = item.get("html_content")
+        #todo 对alt添加标签
+        html_content = re.sub("eeimg", "<img alt=\"\" src=\"/eeimg/{HostI}/img",html_content)
         item["html_content"] = html_content
+        return item
+
+class BillionImiaoPipeline():
+    def process_item(self, item, spider):
+        html_content = item.get("html_content")
+        html_content = noHtml(html_content)
+        item["imiao"] = imiao(html_content,100)
         return item
 
 
@@ -94,19 +110,51 @@ class BillionsCaiPipeline():
                 cropped = img.crop((0, cai, width, height - cai))  # 左 # 上 #右 # 下
                 # 'd1ev/20230301185559556105/1.jpg'
                 filePathNew = filePathOld.replace(".jpg", "_bak.jpg")
-
                 filePathNew = Path().absolute() / "image" / filePathNew
                 cropped.save(filePathNew)
                 pathold = Path().absolute() / "image" / filePathOld
-
                 os.remove(pathold)
                 os.rename(filePathNew, pathold)
-
         return item
 
 
 class BillionsDBPipeline():
+    def __init__(self):
+        from MySQLdb.cursors import DictCursor
+        dbparms =  dict(host="localhost",
+                        user="root",
+                        password="billions",
+                        database="billion",
+                        charset='utf8',
+                        use_unicode=True,
+                        cursorclass=DictCursor)
+
+        self.dbpool = adbapi.ConnectionPool("MySQLdb",**dbparms)
 
     def process_item(self, item, spider):
-        dbpool = adbapi.ConnectionPool("dbmodule", 'mydb', 'andrew', 'password')
+
+        query = self.dbpool.runInteraction(self.do_insert,item)
+        query.addErrback(self.handle_error,item,spider)
+
         return item
+
+    def do_insert(self,cursor,item):
+        sql = "insert into inews (itit,ihtml,wjj,ikey,imiao,biaoq,url,json) " \
+              "values (%s,%s,%s,%s,%s,%s,%s,%s)"
+
+        params = list()
+
+        params.append(item.get("itit"," "))   #todo
+        params.append(item.get("html_content", " "))
+        params.append(item.get("wjj"))
+        params.append(item.get("ikey"," "))   # todo
+        params.append(item.get("imiao"," ").replace("'","''"))
+        params.append(item.get("biaoq"," ")) # todo
+        params.append(item.get("url"," "))   # todo
+        params.append(item.get("json", "[ ]"))  #todo
+
+        cursor.execute(sql, tuple(params))
+
+    def handle_error(self,failure, item,spider):
+        print(failure)
+

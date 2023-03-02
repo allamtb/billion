@@ -69,13 +69,17 @@ IMAGES_THUMBS = {
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-DOWNLOAD_DELAY = 2  # delay in downloading images
+DOWNLOAD_DELAY = 0.1  # delay in downloading images
 ITEM_PIPELINES = {
 
     'billions.pipelines.BillionsImagePipeline':1,
-    'billions.pipelines.BillionsHtmlReplaceImagePathPipeline': 2,
+    'billions.pipelines.BillionsReplaceImage1PathPipeline': 2,
     'billions.pipelines.BillionsNoHtmlTagPipeline': 3,
+    'billions.pipelines.BillionsReplaceImage2PathPipeline': 4,
     'billions.pipelines.BillionsCaiPipeline': 4,
+    'billions.pipelines.BillionImiaoPipeline': 5,
+    "billions.pipelines.BillionsDBPipeline":6
+
 
 
     }
