@@ -71,8 +71,12 @@ IMAGES_THUMBS = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 DOWNLOAD_DELAY = 2  # delay in downloading images
 ITEM_PIPELINES = {
+
     'billions.pipelines.BillionsImagePipeline':1,
-    'billions.pipelines.BillionsHtmlContentPipeline':2,
+    'billions.pipelines.BillionsHtmlReplaceImagePathPipeline': 2,
+    'billions.pipelines.BillionsNoHtmlTagPipeline': 3,
+
+
     }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

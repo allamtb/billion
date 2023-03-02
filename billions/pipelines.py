@@ -6,7 +6,10 @@
 
 # useful for handling different item types with a single interface
 from io import BytesIO
+
+from scrapy import Selector
 from scrapy.pipelines.images import ImagesPipeline, ImageException
+import  re
 
 class BillionsImagePipeline(ImagesPipeline):
 
@@ -44,10 +47,35 @@ class BillionsImagePipeline(ImagesPipeline):
 
 
 
-class BillionsHtmlContentPipeline():
+class BillionsHtmlReplaceImagePathPipeline():
 
     def process_item(self, item, spider):
 
-        path = item.get('images')[0]["path"]
+        html_content = item.get("html_content")
+        # 替换文章中的图片地址为已经下载好的图片地址
+        for image  in  item.get('images'):
+            if(image['status']=='downloaded'):
+                filePath = image['path']
+                fileUrl = image['url']
+                # 'd1ev/20230301185559556105/1.jpg'  获取 20230301185559556105/1.jpg
+                filePath = filePath[filePath.index("/") + 1:]
+                replaceAfter = "\n"+"eeimg/" + filePath +"\n"
+                # 注意使用？ ，表示要三思，懒汉模式；否则会恶汉匹配
+                replaceBefore = r"<img src=\""+fileUrl+r".*?\">"
+                html_content= re.sub(replaceBefore,replaceAfter,html_content)
 
-        print(path)
+        item["html_content"] = html_content
+        return item
+
+class BillionsNoHtmlTagPipeline():
+    def process_item(self, item, spider):
+        html_content = item.get("html_content")
+        # 对文章进行 nohtml 处理
+        html_content = re.sub(r"<(.[^>]*)>", "", html_content)
+        html_content = re.sub(r"\r", "", html_content)
+        html_content = re.sub(r"\t", "", html_content)
+        for i in range(20):
+            html_content = re.sub(r"  ", " ", html_content)
+
+        item["html_content"] = html_content
+        return item

@@ -27,7 +27,7 @@ class QuotesSpider(scrapy.Spider):
             newsUrl = response.urljoin(newsUrl)
             print("新闻路径"+newsUrl)
             print("图片"+homeTuUrl)
-            # 请求文章的路径
+
             d1evItem = D1evItem()
             d1evItem['image_path'] = 'd1ev'
             d1evItem['wjj'] = getwjj()
@@ -48,22 +48,28 @@ class QuotesSpider(scrapy.Spider):
     def parseNews(self, response):
 
         d1evItem = response.meta["item"]
+        # 正文
         html_content = response.xpath("//div[@id='showall233']").get()
+        index =html_content.index("<div class=\"source--wrapper")
+        html_content=html_content[:index]
+        #  正文中的图片
         image_urls =[]
         image_urls.append(d1evItem['homeTuUrl'])
+        images = Selector(text=html_content).xpath("//img/@src").getall()
+        image_urls.extend(images)
         d1evItem['image_urls']=image_urls
+        d1evItem['html_content'] = html_content
         
         yield d1evItem
         # d1evItem[]
 
+        # 裁剪图片
 
-        # 正则表达式获取文章正文
+        # 图片入库 （mysql）
 
-        # 获取图片列表，下载列表中的图片
+        # 容错处理 1、 翻页的容错  2、 没有hometu的处理  3、 其他可能出错的保护
 
-        # 替换到文章中
 
-        # 对文章进行处理 nohtml
 
 
 
