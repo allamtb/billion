@@ -63,9 +63,9 @@ DOWNLOADER_MIDDLEWARES = {
 #}
 IMAGES_STORE = 'image'
 
-IMAGES_THUMBS = {
-    'home': (270, 270),
-}
+# IMAGES_THUMBS = {
+#     'home': (270, 270),
+# }
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
@@ -79,8 +79,6 @@ ITEM_PIPELINES = {
     'billions.pipelines.BillionsCaiPipeline': 4,
     'billions.pipelines.BillionImiaoPipeline': 5,
     "billions.pipelines.BillionsDBPipeline":6
-
-
 
     }
 
