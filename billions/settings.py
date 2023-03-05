@@ -35,6 +35,7 @@ CONCURRENT_REQUESTS = 32
 COOKIES_ENABLED = False
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = True
+RETRY_TIMES= 5
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -61,16 +62,15 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+EXTENSIONS = {
+    'scrapy.extensions.corestats.CoreStats':1,
+   'billions.errorCheck.ErrorCheck': 2,
+}
 IMAGES_STORE = 'image'
 
 # IMAGES_THUMBS = {
 #     'home': (270, 270),
 # }
-
-
 
 
 # Configure item pipelines
@@ -85,15 +85,16 @@ ITEM_PIPELINES = {
     'billions.pipelines.BillionsReplaceImage2PathPipeline': 4,
     'billions.pipelines.BillionsCaiPipeline': 4,
     'billions.pipelines.BillionImiaoPipeline': 5,
-    "billions.pipelines.BillionsDBPipeline":6
+    "billions.pipelines.BillionsDBPipeline":6,
+    "billions.pipelines.BillionJinghuaPipeline":7
 
     }
 
-
-LOG_ENABLED = True #是否启动日志记录，默认True
-LOG_ENCODING = 'UTF-8'
-# LOG_FILE = 'scarpy.log'#日志输出文件，如果为NONE，就打印到控制台
-LOG_LEVEL = 'ERROR'#日志级别，默认debug
+#
+# LOG_ENABLED = True #是否启动日志记录，默认True
+# LOG_ENCODING = 'UTF-8'
+# # LOG_FILE = 'scarpy.log'#日志输出文件，如果为NONE，就打印到控制台
+# LOG_LEVEL = 'ERROR'#日志级别，默认debug
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

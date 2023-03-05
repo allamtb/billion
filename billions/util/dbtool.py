@@ -1,18 +1,38 @@
+import os
+from pathlib import Path
 
 import MySQLdb
 
-con =MySQLdb.connect("localhost","root","billions","billion")
+# 对实际上没有文件夹的数据库字段进行置空处理
+def cheWjj():
+      con = MySQLdb.connect("localhost", "root", "billions", "billion")
+      cur = con.cursor()
+      cur.execute("select wjj,url from inews ")
+      i = 0
+      for row in cur:
 
-cur = con.cursor()
+            path = Path().absolute().parent / 'image' / 'd1ev' / row[0]
+            exit = os.path.exists(path)
+            if not exit:
+                  i = i + 1
+                  prarm = (row[1],)
+                  print(str(path) + ":" + str(exit) + ":" + str(i) + ":" + row[1])
+                  cur.execute("update  inews set wjj = '' where url = %s", prarm)
+                  con.commit()
 
-cur.execute("select * from inews")
+# 对数据库中没有的文件夹，进行清除处理
+def checkWjj():
 
-sql = "insert into inews (itit,ihtml,wjj,ikey,imiao,biaoq,url,json) " \
-      "values (%s,%s,%s,%s,%s,%s,%s,%s)"
+      path = Path().absolute().parent / 'image' / 'd1ev'
+      con = MySQLdb.connect("localhost", "root", "billions", "billion")
+      cur = con.cursor()
+      for item in os.listdir(path):
+            prarm = (item,)
+            cur.execute("select wjj,url from inews where wjj = %s" ,prarm)
+            res = cur.fetchone()
+            if res is None:
+                  print(item +" is null")
 
-str = "'不知道有没有人疑惑过，所谓特斯拉全球“投资者”（investors），具体指的哪些人？ 特斯拉的股东？买了特斯拉汽车的车主？持有特斯拉股票的投资人？ 实际这些都不是，但也可以说他们“都是”。'"
-cur.execute(sql,tuple([1,2,3,4,str,6,7,'[]']))
 
 
-con.commit()
-
+checkWjj()

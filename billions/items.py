@@ -36,6 +36,9 @@ class D1evItem(scrapy.Item):
     html_content = Field()
     imiao =Field()
     itit = Field()
+    ikey = Field()
+    biaoq = Field()
+    page = Field()
 
 
 
