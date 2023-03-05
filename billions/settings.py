@@ -31,7 +31,10 @@ ROBOTSTXT_OBEY = False
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+CONCURRENT_REQUESTS = 32
+COOKIES_ENABLED = False
+DOWNLOAD_TIMEOUT = 15
+RETRY_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -67,9 +70,13 @@ IMAGES_STORE = 'image'
 #     'home': (270, 270),
 # }
 
+
+
+
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-DOWNLOAD_DELAY = 0.1  # delay in downloading images
+#DOWNLOAD_DELAY = 0 # delay in downloading images
+#  RANDOMIZE_DOWNLOAD_DELAY  = True # delay in downloading images
 ITEM_PIPELINES = {
 
     'billions.pipelines.BillionsImagePipeline':1,
@@ -81,6 +88,12 @@ ITEM_PIPELINES = {
     "billions.pipelines.BillionsDBPipeline":6
 
     }
+
+
+LOG_ENABLED = True #是否启动日志记录，默认True
+LOG_ENCODING = 'UTF-8'
+# LOG_FILE = 'scarpy.log'#日志输出文件，如果为NONE，就打印到控制台
+LOG_LEVEL = 'ERROR'#日志级别，默认debug
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
