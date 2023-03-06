@@ -27,8 +27,9 @@ class QuotesSpider(scrapy.Spider):
             newsUrl = Selector(text=news).xpath("//a/@href").get()
             homeTuUrl = Selector(text=news).xpath("//img/@src").get()
             newsUrl = response.urljoin(newsUrl)
+
             d1evItem = D1evItem()
-            d1evItem['image_path'] = 'test'
+            d1evItem['image_path'] = self.name
             d1evItem['page'] =  response.url
             if "no-picture" not in homeTuUrl:  # 有些缩略图为空
                 d1evItem['homeTuUrl'] = response.urljoin(homeTuUrl)

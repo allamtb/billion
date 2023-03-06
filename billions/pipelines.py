@@ -29,9 +29,9 @@ class PipeLineFather():
 
     def process_item(self, item, spider):
         try:
-            self.process_the_item(item,spider)
+            self.process_the_item(item, spider)
         except Exception  as ex:
-            #todo 记录日志，log 来记录
+            # todo 记录日志，log 来记录
             str = traceback.print_exc()
             #  print(dict(item))
             raise DropItem(ex)
@@ -93,12 +93,19 @@ class BillionsReplaceImage1PathPipeline(PipeLineFather):
         for image in item.get('images'):
             if image['status'] == 'downloaded':
                 filePath = image['path']
-                fileUrl = image['url']
+                fileUrl = image['url']  # type: str
+                fileUrl = fileUrl[fileUrl.index("//"):]
+                print(fileUrl)
+
                 # 'd1ev/20230301185559556105/1.jpg'  获取 20230301185559556105/1.jpg
                 filePath = filePath[filePath.index("/") + 1:]
                 replaceAfter = "\n" + "eeimg/" + filePath + "\n"
                 # 注意使用？ ，表示要三思，懒汉模式；否则会恶汉匹配
-                replaceBefore = r"<img src=\"" + fileUrl + r".*?\">"
+                if "?" in fileUrl:
+                    fileUrl = fileUrl[:fileUrl.index("?")]#去掉路径中的 ？ ，?会影响正则匹配
+
+                replaceBefore = r"<img .*?" + fileUrl + r".*?>"
+
                 html_content = re.sub(replaceBefore, replaceAfter, html_content)
 
         item["html_content"] = html_content
@@ -166,7 +173,6 @@ class BillionsCaiPipeline(PipeLineFather):
 
     def process_the_item(self, item, spider):
 
-
         for image in item.get('images'):
             if 'home.jpg' in image['path']:  # 如果是缩略图，就不裁。
                 continue
@@ -215,8 +221,11 @@ class BillionsDBPipeline(PipeLineFather):
         return item
 
     def do_insert(self, cursor, item):
-        sql = "insert into inews_test (itit,ihtml,wjj,ikey,imiao,biaoq,url,json) " \
-              "values (%s,%s,%s,%s,%s,%s,%s,%s)"
+
+        path = item.get('image_path', '')
+
+        sql = "insert into inews_" + path + " (itit,ihtml,wjj,ikey,imiao,biaoq,url,json) " \
+                                            "values (%s,%s,%s,%s,%s,%s,%s,%s)"
 
         params = list()
         params.append(item.get("itit", " "))
@@ -240,9 +249,10 @@ class BillionsDBPipeline(PipeLineFather):
         cursor.execute(sql, tuple(params))
 
     def handle_error(self, failure, item, spider):
+
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
-        shutil.rmtree(path)
+        if os.path.exists(path):
+            shutil.rmtree(path)
         logging.error(failure)
         logging.error(dict(item))
-        print(failure)
