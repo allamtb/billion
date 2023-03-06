@@ -58,9 +58,6 @@ class ErrorCheck:
 
 
     def item_dropped(self, item, spider, exception):
-
-
-        print(exception)
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):
