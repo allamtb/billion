@@ -11,31 +11,35 @@ from billions.util.time import getwjj
 class HuanQiuSpider(scrapy.Spider):
     name = "huanqiu"
     start_urls = []
-    for page in range(1,9999,1):
-
-        url=  "https://auto.huanqiu.com/api/list?node=%22/e3pmh24qk/e3pmh25cs%22,%22/e3pmh24qk/e3pmtj57c%22,%22/e3pmh24qk/e3pmtkgc2%22,%22/e3pmh24qk/e3pn02mp3%22,%22/e3pmh24qk/e3pn4el6u%22,%22/e3pmh24qk/ej8aajlga%22," \
-              "%22/e3pmh24qk/en0e9b249%22&offset="+str(page)+"&limit=100"
+    for page in range(1, 9900, 1):
+        url = "https://auto.huanqiu.com/api/list?node=%22/e3pmh24qk/e3pmh25cs%22,%22/e3pmh24qk/e3pmtj57c%22,%22/e3pmh24qk/e3pmtkgc2%22,%22/e3pmh24qk/e3pn02mp3%22,%22/e3pmh24qk/e3pn4el6u%22,%22/e3pmh24qk/ej8aajlga%22," \
+              "%22/e3pmh24qk/en0e9b249%22&offset=" + str(page) + "&limit=100"
         start_urls.append(url)
 
     def parse(self, response):
 
-        if response.text is  None:
-            pass
+        if response.text is None:
 
-        jsonText = json.loads(response.text)  #type: json
-        print(jsonText)
-        for content in  jsonText['list']:
-            if  len(content) ==0:
+            value = self.crawler.stats.get_value("no_content_url")
+            if value is None:
+                value = []
+            value.append(response.url)
+            self.crawler.stats.set_value('no_content_url', value)
+            return
+        response_text = response.text.replace("\\", "\\\\")  # 对json中的反斜杠转义
+        jsonText = json.loads(response_text)  # type: json
+        for content in jsonText['list']:
+            if len(content) == 0:
                 continue
             title = content.get('title')
             homeTuUrl = content.get('cover')
             newsUrl = content['aid']
-            newsUrl = "https://auto.huanqiu.com/article/"+newsUrl
+            newsUrl = "https://auto.huanqiu.com/article/" + newsUrl
 
             d1evItem = D1evItem()
             d1evItem['image_path'] = self.name
-            d1evItem['page'] =  response.url
-            if  homeTuUrl is not None and "no-picture" not in homeTuUrl :  # 有些缩略图为空
+            d1evItem['page'] = response.url
+            if homeTuUrl is not None and "no-picture" not in homeTuUrl:  # 有些缩略图为空
                 d1evItem['homeTuUrl'] = response.urljoin(homeTuUrl)
             d1evItem['itit'] = title
             d1evItem['newsUrl'] = response.urljoin(newsUrl)
@@ -55,8 +59,8 @@ class HuanQiuSpider(scrapy.Spider):
         if len(d1evItem['homeTuUrl']) > 0:  # 只有hometu存在的时候才处理
             image_urls.append(d1evItem['homeTuUrl'])
         images = Selector(text=html_content).xpath("//img/@src").getall()
-            # 列表推导
-        newImages = [response.urljoin(image) for image in images]
+        # 列表推导
+        newImages = [response.urljoin(image) for image in images if image and "." in image]
         image_urls.extend(newImages)
         d1evItem['image_urls'] = image_urls
 
