@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import logging
 
 from scrapy import signals
 
@@ -87,13 +88,13 @@ class BillionsUserAgentMiddleware:
 
     def process_response(self, response, request, spider):
 
-        # if response.status != 200:
-        #
-        #     value = self.crawler.stats.get_value("fail_url")
-        #     if value is None:
-        #         value = []
-        #     value.append(response.url)
-        #     self.crawler.stats.set_value('fail_url', value, spider=spider)
+        if response.status != 200:
+            value = self.crawler.stats.get_value("fail_url")
+            if value is None:
+                value = []
+            value.append(response.url)
+            self.crawler.stats.set_value('fail_url', value, spider=spider)
+
 
 
         return response
@@ -105,6 +106,9 @@ class BillionsUserAgentMiddleware:
             value = []
         value.append(request.url)
         self.crawler.stats.set_value('fail_url', value, spider=spider)
+
+        logging.error(exception, exc_info=True)
+
 
 
 

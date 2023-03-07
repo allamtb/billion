@@ -31,9 +31,8 @@ class PipeLineFather():
         try:
             self.process_the_item(item, spider)
         except Exception  as ex:
-            # todo 记录日志，log 来记录
-            str = traceback.print_exc()
-            #  print(dict(item))
+            logging.error(ex,exc_info=True)
+            logging.error(dict(item))
             raise DropItem(ex)
         else:
             return item
@@ -95,8 +94,6 @@ class BillionsReplaceImage1PathPipeline(PipeLineFather):
                 filePath = image['path']
                 fileUrl = image['url']  # type: str
                 fileUrl = fileUrl[fileUrl.index("//"):]
-                print(fileUrl)
-
                 # 'd1ev/20230301185559556105/1.jpg'  获取 20230301185559556105/1.jpg
                 filePath = filePath[filePath.index("/") + 1:]
                 replaceAfter = "\n" + "eeimg/" + filePath + "\n"
@@ -130,7 +127,7 @@ class BillionsReplaceImage2PathPipeline(PipeLineFather):
         else:
             item["ikey"] = tag
         item["biaoq"] = tag
-        imgtag = "< img alt =\"" + tag + "\" src=\"/eeimg/{HostI}/img"
+        imgtag = "<img alt =\"" + tag + "\" src=\"/eeimg/{HostI}/img"
 
         html_content = re.sub("eeimg", imgtag, html_content)
         html_content = re.sub(".jpg", ".jpg \"/>", html_content)
@@ -157,6 +154,8 @@ class BillionJinghuaPipeline(PipeLineFather):
         html_content = re.sub("&nbsp;", "", html_content)
         html_content = re.sub("<!--", "", html_content)
         html_content = re.sub("-->", "", html_content)
+        html_content = re.sub("【环球网汽车报道】", "", html_content)
+
         item["html_content"] = html_content
 
         return item

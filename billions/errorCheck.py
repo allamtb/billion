@@ -1,6 +1,7 @@
 """
 Extension for collecting core stats like items scraped and start/finish times
 """
+import logging
 import os
 import shutil
 import traceback
@@ -25,15 +26,23 @@ class ErrorCheck:
         crawler.signals.connect(o.spider_closed, signal=signals.spider_closed)
         crawler.signals.connect(o.item_scraped, signal=signals.item_scraped)
         crawler.signals.connect(o.item_dropped, signal=signals.item_dropped)
+        crawler.signals.connect(o.spider_error, signal=signals.spider_error)
         return o
 
     def spider_opened(self, spider):
         pass
 
     def spider_closed(self, spider, reason):
-        print(self.stats.get_stats())
+        logging.info(self.stats.get_stats())
+
+
+    def spider_error(self, failure, response, spider):
+        logging.error(failure,exc_info=True)
 
     def item_scraped(self, item, spider):
+
+        logging.info(self.stats.get_stats())
+        print(self.stats.get_stats())
         # 缩略图补救; 如果图片url地址有， 但是没有下载成功， 那么就用下载成功的第一张图片做缩略图
 
         if len(item["homeTuUrl"]) > 0:
@@ -58,6 +67,7 @@ class ErrorCheck:
 
 
     def item_dropped(self, item, spider, exception):
+        logging.info(self.stats.get_stats())
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):
