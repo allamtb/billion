@@ -33,19 +33,22 @@ class ErrorCheck:
         pass
 
     def spider_closed(self, spider, reason):
-        logging.info(self.stats.get_stats())
+
+        spider.logger.info(self.stats.get_stats())
 
 
     def spider_error(self, failure, response, spider):
-        logging.error(failure,exc_info=True)
+        reason = failure.__class__.__name__
+        self.stats.inc_value(f'spider_error_count/{reason}', spider=spider)
+        spider.logger.error(failure,exc_info=True)
 
     def item_scraped(self, item, spider):
 
-        logging.info(self.stats.get_stats())
+        spider.logger.info(self.stats.get_stats())
         print(self.stats.get_stats())
         # 缩略图补救; 如果图片url地址有， 但是没有下载成功， 那么就用下载成功的第一张图片做缩略图
 
-        if len(item["homeTuUrl"]) > 0:
+        if item.get("homeTuUrl",None):
             homeTuDownLoaded = False
             for image in item.get('images'):
                 if 'home.jpg' in image['path'] and image['status'] == 'downloaded':
@@ -65,9 +68,10 @@ class ErrorCheck:
                             break
 
 
-
     def item_dropped(self, item, spider, exception):
-        logging.info(self.stats.get_stats())
+        spider.logger.info(self.stats.get_stats())
+        reason = exception.__class__.__name__
+        self.stats.inc_value(f'item_dropped_reasons_count/{reason}', spider=spider)
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):

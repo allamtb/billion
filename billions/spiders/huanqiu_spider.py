@@ -27,7 +27,7 @@ class HuanQiuSpider(scrapy.Spider):
             self.crawler.stats.set_value('no_content_url', value)
             return
         response_text = response.text.replace("\\", "\\\\")  # 对json中的反斜杠转义
-        jsonText = json.loads(response_text)  # type: json
+        jsonText = json.loads(response_text,strict=False)# type: json
         for content in jsonText['list']:
             if len(content) == 0:
                 continue
@@ -39,7 +39,7 @@ class HuanQiuSpider(scrapy.Spider):
             d1evItem = D1evItem()
             d1evItem['image_path'] = self.name
             d1evItem['page'] = response.url
-            if homeTuUrl is not None and "no-picture" not in homeTuUrl:  # 有些缩略图为空
+            if homeTuUrl is not None  and "." in homeTuUrl and "no-picture" not in homeTuUrl:  # 有些缩略图为空
                 d1evItem['homeTuUrl'] = response.urljoin(homeTuUrl)
             d1evItem['itit'] = title
             d1evItem['newsUrl'] = response.urljoin(newsUrl)
@@ -56,7 +56,7 @@ class HuanQiuSpider(scrapy.Spider):
 
         # 正文中的图片
         image_urls = []
-        if len(d1evItem['homeTuUrl']) > 0:  # 只有hometu存在的时候才处理
+        if d1evItem.get('homeTuUrl',None):  # 只有hometu存在的时候才处理
             image_urls.append(d1evItem['homeTuUrl'])
         images = Selector(text=html_content).xpath("//img/@src").getall()
         # 列表推导

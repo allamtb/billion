@@ -31,8 +31,8 @@ class PipeLineFather():
         try:
             self.process_the_item(item, spider)
         except Exception  as ex:
-            logging.error(ex,exc_info=True)
-            logging.error(dict(item))
+            spider.logger.error('出错的excetpion: %s , 出错的item: %s', ex, item)
+            logging.error(ex,exc_info=True,stack_info=True)
             raise DropItem(ex)
         else:
             return item
@@ -155,6 +155,7 @@ class BillionJinghuaPipeline(PipeLineFather):
         html_content = re.sub("<!--", "", html_content)
         html_content = re.sub("-->", "", html_content)
         html_content = re.sub("【环球网汽车报道】", "", html_content)
+        html_content = re.sub(r"\[.*?\]", "", html_content)
 
         item["html_content"] = html_content
 
@@ -253,5 +254,5 @@ class BillionsDBPipeline(PipeLineFather):
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):
             shutil.rmtree(path)
-        logging.error(failure)
-        logging.error(dict(item))
+        spider.logger.error('出错的excetpion: %s , 出错的item: %s', failure, item)
+        # spider.logger.error(dict(item))
