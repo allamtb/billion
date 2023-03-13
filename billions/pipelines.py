@@ -20,6 +20,8 @@ import json
 import shutil
 
 # 下载图片、缩略图
+from twisted.python import failure
+
 from billions.util.csvUtil import CsvUtil
 from billions.util.htmlUtil import imiao, noHtml
 import logging
@@ -149,15 +151,18 @@ class BillionJinghuaPipeline(PipeLineFather):
 
     def process_the_item(self, item, spider):
         html_content = item.get("html_content")
-        html_content = re.sub(r"（.*）", "", html_content)
+        html_content = re.sub(r"（.*?）", "", html_content)
         html_content = re.sub(r"\[汽车之家.*\]", "", html_content)
         html_content = re.sub("&nbsp;", "", html_content)
         html_content = re.sub("<!--", "", html_content)
         html_content = re.sub("-->", "", html_content)
-        html_content = re.sub("【环球网汽车报道】", "", html_content)
+        html_content = re.sub("【.*?\】", "", html_content)
         html_content = re.sub(r"\[.*?\]", "", html_content)
 
         item["html_content"] = html_content
+
+        if len(html_content) <20:
+             raise DropItem("内容字数少于20")
 
         return item
 
@@ -249,7 +254,7 @@ class BillionsDBPipeline(PipeLineFather):
         cursor.execute(sql, tuple(params))
 
     def handle_error(self, failure, item, spider):
-
+        # raise failure
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):

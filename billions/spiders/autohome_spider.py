@@ -7,54 +7,50 @@ from scrapy.selector import Selector
 from billions.items import D1evItem
 from billions.util.time import getwjj
 
-#环球网的数据，只有9850多条，已采集。
-# json返回
 
+# 未采集
+# 这个是在 .net 环境采集的，需要重新采集。
 class HuanQiuSpider(scrapy.Spider):
-    name = "huanqiu"
+    name = "autohome"
     start_urls = []
-    for page in range(1, 9900, 1):
-        url = "https://auto.huanqiu.com/api/list?node=%22/e3pmh24qk/e3pmh25cs%22,%22/e3pmh24qk/e3pmtj57c%22,%22/e3pmh24qk/e3pmtkgc2%22,%22/e3pmh24qk/e3pn02mp3%22,%22/e3pmh24qk/e3pn4el6u%22,%22/e3pmh24qk/ej8aajlga%22," \
-              "%22/e3pmh24qk/en0e9b249%22&offset=" + str(page) + "&limit=100"
+    for page in range(1, 10607, 1):
+        url = "https://www.autohome.com.cn/all/" + str(page) + "/#liststart";
         start_urls.append(url)
 
     def parse(self, response):
 
         if response.text is None:
-
-            value = self.crawler.stats.get_value("no_content_url")
-            if value is None:
-                value = []
-            value.append(response.url)
-            self.crawler.stats.set_value('no_content_url', value)
             return
-        response_text = response.text.replace("\\", "\\\\")  # 对json中的反斜杠转义
-        jsonText = json.loads(response_text,strict=False)# type: json
-        for content in jsonText['list']:
-            if len(content) == 0:
-                continue
-            title = content.get('title')
-            homeTuUrl = content.get('cover')
-            newsUrl = content['aid']
-            newsUrl = "https://auto.huanqiu.com/article/" + newsUrl
+
+        newsList = response.xpath("//ul[@class='article']//li").getall()
+
+        print(response.url)
+        # 解析获取每篇文章的路径 、缩略图，注意缩略图为空的情况
+        for news in newsList:
+            newsUrl = Selector(text=news).xpath("//a/@href").get()
+            homeTuUrl = Selector(text=news).xpath("//img/@src").get()
+            newsUrl = response.urljoin(newsUrl)
 
             d1evItem = D1evItem()
             d1evItem['image_path'] = self.name
             d1evItem['page'] = response.url
-            if homeTuUrl is not None  and "." in homeTuUrl and "no-picture" not in homeTuUrl:  # 有些缩略图为空
+            if "no-picture" not in homeTuUrl:  # 有些缩略图为空
                 d1evItem['homeTuUrl'] = response.urljoin(homeTuUrl)
-            d1evItem['itit'] = title
-            d1evItem['newsUrl'] = response.urljoin(newsUrl)
-
+            d1evItem['newsUrl'] = newsUrl
             yield scrapy.Request(newsUrl, callback=self.parseNews, meta={"item": d1evItem})
 
     def parseNews(self, response):
 
         d1evItem = response.meta["item"]
 
+        #title
+        title = response.xpath("//div[@id='articlewrap']/h1/text()").get()  # type:str
+        d1evItem['itit'] = title
+
         # 正文
-        html_content = response.xpath("//textarea[@class='article-content']").get()  # type:str
+        html_content = response.xpath("//div[@id='articleContent']").get()  # type:str
         d1evItem['html_content'] = html_content
+
 
         # 正文中的图片
         image_urls = []

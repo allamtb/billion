@@ -65,4 +65,14 @@ class CsvUtil:
 #  单例模式
 CsvUtil = CsvUtil()
 
-print(CsvUtil.findTag("长安"))
+count = 1
+for i  in CsvUtil.getCarList():
+    print(i)
+    if 'FF 91' == i :
+        break
+    count = count+1
+
+print(count)
+
+print(CsvUtil.getCarList().index('极狐 阿尔法T'))
+#print(CsvUtil.getCarList())

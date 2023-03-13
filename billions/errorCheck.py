@@ -1,7 +1,7 @@
 """
 Extension for collecting core stats like items scraped and start/finish times
 """
-import logging
+from loguru import logger
 import os
 import shutil
 import traceback
@@ -43,9 +43,8 @@ class ErrorCheck:
         spider.logger.error(failure,exc_info=True)
 
     def item_scraped(self, item, spider):
-
+        logger.info("itemScraped: " + self.StatStr())
         spider.logger.info(self.stats.get_stats())
-        print(self.stats.get_stats())
         # 缩略图补救; 如果图片url地址有， 但是没有下载成功， 那么就用下载成功的第一张图片做缩略图
 
         if item.get("homeTuUrl",None):
@@ -70,9 +69,17 @@ class ErrorCheck:
 
     def item_dropped(self, item, spider, exception):
         spider.logger.info(self.stats.get_stats())
-        reason = exception.__class__.__name__
-        self.stats.inc_value(f'item_dropped_reasons_count/{reason}', spider=spider)
+        logger.info("itemDropped: " + self.StatStr())
+        self.stats.inc_value(f'item_dropped_count', spider=spider)
         image_path = item.get('image_path', "default")
         path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
         if os.path.exists(path):
             shutil.rmtree(path)
+
+    def StatStr(self):
+       item_scraped_count =  self.stats.get_stats().get('item_scraped_count','')
+       error =  self.stats.get_stats().get('log_count/ERROR','')
+       item_dropped_count =  self.stats.get_stats().get('litem_dropped_count','')
+
+       result = "[item_scraped_count] : "+ str(item_scraped_count) + " [log_count/ERROR] ："+ str(error) + "[item_dropped_count] ："+ str(item_dropped_count)
+       return result

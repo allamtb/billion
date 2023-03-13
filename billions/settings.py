@@ -7,6 +7,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+HTTPERROR_ALLOWED_CODES = ["413"]
 BOT_NAME = 'billions'
 
 SPIDER_MODULES = ['billions.spiders']
@@ -25,7 +26,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -86,25 +87,25 @@ IMAGES_STORE = 'image'
 
 
 # Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# DOWNLOAD_DELAY = 0.1 # delay in downloading images
-# RANDOMIZE_DOWNLOAD_DELAY  = True # delay in downloading images
+# # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+
 ITEM_PIPELINES = {
     'billions.pipelines.BillionsImagePipeline':1,
     'billions.pipelines.BillionsReplaceImage1PathPipeline': 2,
     'billions.pipelines.BillionsNoHtmlTagPipeline': 3,
     'billions.pipelines.BillionsReplaceImage2PathPipeline': 4,
-    'billions.pipelines.BillionsCaiPipeline': 4,
-    'billions.pipelines.BillionImiaoPipeline': 5,
-    "billions.pipelines.BillionsDBPipeline":6,
-    "billions.pipelines.BillionJinghuaPipeline":7
+    'billions.pipelines.BillionsCaiPipeline': 5,
+    "billions.pipelines.BillionJinghuaPipeline": 6,
+    'billions.pipelines.BillionImiaoPipeline': 7,
+    "billions.pipelines.BillionsDBPipeline":8,
 }
 
-#
-LOG_ENABLED = True #是否启动日志记录，默认True
-LOG_ENCODING = 'UTF-8'
-LOG_FILE = 'xcar.log'#日志输出文件，如果为NONE，就打印到控制台
-LOG_LEVEL = 'ERROR'#日志级别，默认debug
+# DOWNLOAD_DELAY = 2 # delay in downloading images
+# # RANDOMIZE_DOWNLOAD_DELAY  = True # delay in downloading images
+# LOG_ENABLED = True #是否启动日志记录，默认True
+# LOG_ENCODING = 'UTF-8'
+# LOG_FILE = 'huanqiu.log'#日志输出文件，如果为NONE，就打印到控制台
+# LOG_LEVEL = 'ERROR'#日志级别，默认debug
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -112,7 +113,7 @@ LOG_LEVEL = 'ERROR'#日志级别，默认debug
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
-AUTOTHROTTLE_MAX_DELAY = 60
+AUTOTHROTTLE_MAX_DELAY = 10
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
 AUTOTHROTTLE_TARGET_CONCURRENCY = 10

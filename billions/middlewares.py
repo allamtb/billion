@@ -5,12 +5,14 @@
 import logging
 import time
 
+import requests
 import scrapy
 from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 from fake_useragent import UserAgent
+from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
 from scrapy.http import HtmlResponse
 
 from selenium import webdriver
@@ -26,7 +28,7 @@ class BillionsSpiderMiddleware:
         spider.logger.error(exception, exc_info=True)
 
 
-class BillionsUserAgentMiddleware:
+class BillionsUserAgentMiddleware(HttpProxyMiddleware):
     """This middleware allows spiders to override the user_agent"""
 
     def __init__(self, crawler, user_agent='Scrapy'):
@@ -45,5 +47,8 @@ class BillionsUserAgentMiddleware:
     def process_request(self, request, spider):
         ua = UserAgent()
         request.headers.setdefault(b'User-Agent', ua.random)
+        # ip = requests.get("http://get.9vps.com/getip.asp?username=15213283776&apikey=64304876&pwd=71ebf281cccfe9b06a433cc58e04739a&geshi=1&fenge=1&fengefu=&Contenttype=1&getnum=1&setcity=&operate=all")
+        # if ip :
+        #     request.meta["proxy"] = "http://"+ip.text.strip()
 
 

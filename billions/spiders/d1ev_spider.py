@@ -1,11 +1,11 @@
 import scrapy
-import time
 from scrapy.selector import Selector
 
 from billions.items import D1evItem
+from billions.util.dbtool import db
 from billions.util.time import getwjj
 
-
+# 已采集 10w条
 class QuotesSpider(scrapy.Spider):
     name = "d1ev"
     #start_urls = ["https://www.d1ev.com/news"]
@@ -34,6 +34,9 @@ class QuotesSpider(scrapy.Spider):
             if "no-picture" not in homeTuUrl:  # 有些缩略图为空
                 d1evItem['homeTuUrl'] = response.urljoin(homeTuUrl)
             d1evItem['newsUrl'] = newsUrl
+
+            if  db.findUrl(newsUrl) : # 如果已经存在该URL，则返回
+                return
             yield scrapy.Request(newsUrl, callback=self.parseNews, meta={"item": d1evItem})
 
         # 对于分页信息，进行分页采集
@@ -50,6 +53,10 @@ class QuotesSpider(scrapy.Spider):
         # 标题
         itit = response.xpath("//div[@class='ws-title']/h1/text()").get()
         d1evItem['itit'] = itit
+
+        if db.findTitle(itit):
+            return
+
         # 正文
         html_content = response.xpath("//div[@id='showall233']").get()  # type:str
         index = html_content.index("<div class=\"source--wrapper")
@@ -72,5 +79,5 @@ class QuotesSpider(scrapy.Spider):
 
         # 如果没有 title 以及 html 就不要生成内容了。
         if len(html_content) < 0 or len(d1evItem['itit']) < 0:
-            pass
+            return
         yield d1evItem
