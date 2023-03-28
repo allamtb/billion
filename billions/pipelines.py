@@ -25,7 +25,7 @@ from twisted.python import failure
 from billions.util.csvUtil import CsvUtil
 from billions.util.htmlUtil import imiao, noHtml
 import logging
-
+from loguru import logger
 
 class PipeLineFather():
 
@@ -166,6 +166,33 @@ class BillionJinghuaPipeline(PipeLineFather):
 
         return item
 
+# 净化正文，主动去除一些标记
+class BillionJinghuaPipelineForBaidu(PipeLineFather):
+
+    def process_the_item(self, item, spider):
+
+        html = item.get("html_content")
+        html = html.replace(" ", "")
+        html = html.replace("．", "")
+        html = html.replace("▪", "")
+        html = re.sub(r"\[\d+\]\s*?[。|，|；|！|、]", "", html)
+        html = re.sub(r"\[\d+\]", "", html)
+        html = re.sub(r"\[\d+\-\d+\]\s*?[。|，|；|！|、]", "", html)
+        html = re.sub(r"\[\d+\-\d+\]", "", html)
+        html =  re.sub(r' \n', "", html)
+        html =  re.sub(r'编辑\n', "", html)
+        html =  re.sub(r'播报\n', "", html)
+        html = re.sub(r'\(\d+张\)', "", html)
+        html = re.sub(r"\x20+", "", html)
+        html = re.sub(r"\xa0+", "", html)
+        html = re.sub(r"[\n]{3,}", "\n\n", html)
+        html = html.replace("更多图册","")
+        item["html_content"] = html
+        if len(html) <20:
+             raise DropItem("内容字数少于20")
+
+        return item
+
 
 class BillionsCaiPipeline(PipeLineFather):
     def __init__(self, store_uri):
@@ -261,3 +288,73 @@ class BillionsDBPipeline(PipeLineFather):
             shutil.rmtree(path)
         spider.logger.error('出错的excetpion: %s , 出错的item: %s', failure, item)
         # spider.logger.error(dict(item))
+
+
+class BillionsDBPipelineForBaike(PipeLineFather):
+
+    @classmethod
+    def from_settings(cls, settings):
+        store_uri = settings['IMAGES_STORE']
+        return cls(store_uri)
+
+    def __init__(self, store_uri):
+        self.store_uri = store_uri
+
+        from MySQLdb.cursors import DictCursor
+        dbparms = dict(host="localhost",
+                       user="root",
+                       password="billions",
+                       database="billion",
+                       charset='utf8',
+                       use_unicode=True,
+                       cursorclass=DictCursor)
+
+        self.dbpool = adbapi.ConnectionPool("MySQLdb", **dbparms)
+
+    def process_the_item(self, item, spider):
+
+        query = self.dbpool.runInteraction(self.do_insert, item)
+        query.addErrback(self.handle_error, item, spider)
+        return item
+
+    def do_insert(self, cursor, item):
+
+        path = item.get('image_path', '')
+
+        sql = "insert into baike_baidu_new (itit,ihtml,wjj,ikey,imiao,biaoq,url,json,lei11,lei22,iurl,xtit,xmiao) " \
+                                            "values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+
+        params = list()
+        params.append(item.get("itit", " "))
+        params.append(item.get("html_content", " "))
+        # 只有当图片下载成功的时候，图片的wjj才需要入数据库。
+        imageDownLoad = False
+        for image in item.get('images'):
+            if (image['status'] == 'downloaded'):
+                imageDownLoad = True
+        if imageDownLoad:
+            params.append(item.get("wjj", " "))
+        else:
+            params.append(" ")
+        params.append(item.get("ikey", " "))
+        miao = item.get("imiao", " ").replace("'", "''")
+        params.append(miao)
+        params.append(item.get("biaoq", " "))
+        params.append(item.get("newsUrl", " "))
+        json1 = json.dumps(dict(item))
+        params.append(json1)
+        params.append(item.get("lei11", " "))
+        params.append(item.get("lei22", " "))
+        params.append(item.get("iurl", " "))
+        params.append(item.get("itit", " ")) # 小title 等于itil
+        params.append(imiao(miao,50))
+
+        cursor.execute(sql, tuple(params))
+
+    def handle_error(self, failure, item, spider):
+        # raise failure
+        image_path = item.get('image_path', "default")
+        path = Path().absolute() / self.store_uri / image_path / item.get("wjj")
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        spider.logger.error('出错的excetpion: %s , 出错的item: %s', failure, item)

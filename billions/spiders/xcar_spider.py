@@ -8,8 +8,10 @@ from scrapy_selenium import SeleniumRequest
 
 from billions.items import D1evItem
 from billions.util.csvUtil import CsvUtil
-from billions.util.dbtool import db
-from billions.util.time import getwjj
+from billions.util.DBTool import db
+from billions.util.htmlUtil import getwjj
+
+
 # project_path = Path.cwd().parent
 # log_path = Path(project_path, "log")
 
@@ -36,7 +38,7 @@ class XcarSpider(scrapy.Spider):
 
         carlist = CsvUtil.getCarList()
         for car in carlist:
-            if carlist.index(car) >= 645:
+            if carlist.index(car) > carlist.index("轩度"):
                 for page in range(1, 1001, 1):
                     url = "http://search.xcar.com.cn/infosearch.php#?page=" + str(page) + "&searchValue=" + car + ""
                     logger.info("yield url: %s"%url)
@@ -85,7 +87,7 @@ class XcarSpider(scrapy.Spider):
                 value = []
             value.append(response.url)
             self.crawler.stats.set_value('empty_url', value)
-            ogger.info(" html content is none   ")
+            logger.info(" html content is none   ")
             return
         contentEnd = '<!-- 以上信息来自 -->'  # 去除文章末尾不需要的内容
         if  contentEnd in html_content:

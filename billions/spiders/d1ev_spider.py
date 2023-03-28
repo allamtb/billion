@@ -2,8 +2,9 @@ import scrapy
 from scrapy.selector import Selector
 
 from billions.items import D1evItem
-from billions.util.dbtool import db
-from billions.util.time import getwjj
+from billions.util.DBTool import db
+from billions.util.htmlUtil import getwjj
+
 
 # 已采集 10w条
 class QuotesSpider(scrapy.Spider):

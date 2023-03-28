@@ -1,6 +1,8 @@
 """
 Extension for collecting core stats like items scraped and start/finish times
 """
+import re
+
 from loguru import logger
 import os
 import shutil
@@ -46,6 +48,7 @@ class ErrorCheck:
         logger.info("itemScraped: " + self.StatStr())
         spider.logger.info(self.stats.get_stats())
         # 缩略图补救; 如果图片url地址有， 但是没有下载成功， 那么就用下载成功的第一张图片做缩略图
+
 
         if item.get("homeTuUrl",None):
             homeTuDownLoaded = False

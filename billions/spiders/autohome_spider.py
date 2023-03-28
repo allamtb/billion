@@ -5,7 +5,7 @@ import time
 from scrapy.selector import Selector
 
 from billions.items import D1evItem
-from billions.util.time import getwjj
+from billions.util.htmlUtil import getwjj
 
 
 # 未采集

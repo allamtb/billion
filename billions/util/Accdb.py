@@ -64,3 +64,11 @@ class Accdb:
 
     def table_header(self, table):
         return self.qry_header(f"SELECT * FROM {table};")
+
+
+path = r"F:\billionsData\kong.com.accdb"
+qry_select = "SELECT * FROM inews;"
+# Classic way
+db = Accdb(path)
+db.execute(qry_select)
+print(db.query(qry_select))

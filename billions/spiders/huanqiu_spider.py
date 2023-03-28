@@ -5,7 +5,8 @@ import time
 from scrapy.selector import Selector
 
 from billions.items import D1evItem
-from billions.util.time import getwjj
+from billions.util.htmlUtil import getwjj
+
 
 #环球网的数据，只有9850多条，已采集。
 # json返回

@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 import scrapy
 from loguru import logger
@@ -5,8 +6,10 @@ from scrapy.selector import Selector
 from scrapy_selenium import SeleniumRequest
 
 from billions.items import D1evItem
-from billions.util.dbtool import db
-from billions.util.time import getwjj
+from billions.util.DBTool import db
+from billions.util.htmlUtil import getwjj
+
+
 # project_path = Path.cwd().parent
 # log_path = Path(project_path, "log")
 
@@ -19,7 +22,7 @@ class GasgooSpider(scrapy.Spider):
     logger.add(f"./log/"+name+"Info.log", level="INFO", rotation="100MB", encoding="utf-8", enqueue=True, retention="10 days")
     custom_settings = {
         'DOWNLOAD_TIMEOUT': 30,
-        'DOWNLOAD_DELAY': 0.5,  # delay in downloading images
+        'DOWNLOAD_DELAY': 2,  # delay in downloading images
         'RANDOMIZE_DOWNLOAD_DELAY': True,  # delay in downloading images
         'AUTOTHROTTLE_MAX_DELAY': 10,
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 10,
@@ -35,6 +38,7 @@ class GasgooSpider(scrapy.Spider):
         for page in range(1, 5043, 1):
             url = "https://auto.gasgoo.com/auto-news/C-103-106-107-108-109-110-303-409-501-601/"+str(page)
             logger.info("yield url: %s"%url)
+            time.sleep(1)
             yield SeleniumRequest(url=url, callback=self.parse, screenshot=False, dont_filter=True, wait_time=2)
 
 

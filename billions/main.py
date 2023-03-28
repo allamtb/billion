@@ -1,5 +1,5 @@
 from scrapy.cmdline import execute
 
-execute("scrapy crawl hexun".split())
+execute("scrapy crawl baike".split())
 
 

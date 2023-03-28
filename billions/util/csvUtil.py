@@ -1,8 +1,10 @@
-from pathlib import Path
+import re
 
 import pandas as pd
 import numpy as np
-from shutil import which
+
+from billions.util.RichSelenium import baidubaikeFix
+from billions.util.htmlUtil import getChineseWord
 
 
 class CsvUtil:
@@ -12,7 +14,19 @@ class CsvUtil:
         path = "F:\\billions\\billions\\util\\car.csv"
         self.csv_data = pd.read_csv(path)
         self.brand_name_ = self.csv_data.loc[:, ["CarBrandName", "VendorName"]]
+        self.VendorName = self.csv_data.loc[:, ["VendorName"]]
+
         print(self.brand_name_)
+
+    def getVenderByCar(self,key):
+
+        vender = self.brand_name_.loc[self.brand_name_['CarBrandName'] == key]
+        x =np.array(vender).tolist()
+        if x:
+            return x[0][1]
+        else:
+            return None
+
 
     def getCarList(self):
 
@@ -62,17 +76,49 @@ class CsvUtil:
         return res
 
 
+    def getCar(self):
+
+        return  np.array(self.brand_name_).tolist()
+    def getVender(self):
+        vender = self.VendorName.drop_duplicates()
+        return  np.array(vender).tolist()
+
+    def fixCsvCarName(self):
+        car = []
+        with open("F:/baikeError.log", 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+            for line in lines:
+                if 'Spider error processing <GET' in line:
+                    sch = re.search("<GET (.*?)>", line)
+                    html = sch.group(1)
+                    if 'item/' in html:
+                        res = re.search("item/(.*?)[\?|target]", line).group(1)
+                        word = getChineseWord(res)
+                    else:
+                        res = re.search("word=(.*?)&", line).group(1)
+                        word = getChineseWord(res)
+                    # 通过selenium调用百度百科的自动提示补全搜索关键字
+                    word = baidubaikeFix(word)
+                    if word is None:
+                        continue
+                    url = "https://baike.baidu.com/item/" + word
+
+                    if word in self.getVender():
+                        car.append((word, '', '', url))
+                    else:
+                        vendor = self.getVenderByCar(word)
+                        car.append((word, '', vendor, url))
+                    print(word)
+                    print(car)
+        return car
+
+
 #  单例模式
 CsvUtil = CsvUtil()
-
-count = 1
-for i  in CsvUtil.getCarList():
-    print(i)
-    if 'FF 91' == i :
-        break
-    count = count+1
-
-print(count)
-
-print(CsvUtil.getCarList().index('极狐 阿尔法T'))
-#print(CsvUtil.getCarList())
+#
+# print(CsvUtil.getCarList().index('极狐 阿尔法T'))
+# # #print(CsvUtil.getCarList())
+# CsvUtil.getCar()
+# print(CsvUtil.getVender())
+#
+# print(CsvUtil.getVenderByCar("桑塔纳"))

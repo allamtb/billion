@@ -39,6 +39,9 @@ class D1evItem(scrapy.Item):
     ikey = Field()
     biaoq = Field()
     page = Field()
+    lei11 = Field()
+    lei22 = Field()
+    iurl = Field()
 
 
 
