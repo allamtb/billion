@@ -239,7 +239,7 @@ def getHeaders():
     driver.get('https://bot.sannysoft.com/')  # my own test test site with max anti-bot protection
     time.sleep(100)
 
-getHeaders()
+# getHeaders()
 #  OK
 def googleFanyi():
     con = MySQLdb.connect("localhost", "root", "billions", "billion")

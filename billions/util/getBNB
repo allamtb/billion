@@ -1,0 +1,82 @@
+import json
+import threading
+
+import requests
+import time
+from tqdm import tqdm
+
+headers = {
+
+    "content-type": "application/json",
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
+    "accept": "*/*",
+    "origin": "https://space.id",
+    "accept-encoding": "gzip, deflate, br",
+    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+    "content-length": "754",
+    "sec-ch-ua": "Google Chrome",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "macOS",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-si"
+
+}
+
+
+ids = ["666","888","999","333","555","777","111","000","222"]
+
+
+pbar =tqdm(total=6561)
+
+bnbs = []
+
+def find(id):
+
+        for i in range(1000):
+            appendValue = str(i)
+            if "4" in appendValue:
+                continue
+            for y in range(2):
+                if (len(appendValue) < 3):
+                    appendValue = "0" + appendValue
+
+            bnb = appendValue + str(id)
+
+            payload = {"operationName": "domains", "variables": {
+                "input": {"query": bnb, "orderBy": "LIST_PRICE_ASC", "buyNow": 1, "network": 1,
+                          "domainStatuses": ["REGISTERED", "UNREGISTERED"], "first": 30}},
+                       "query": "query domains($input: ListDomainsInput!) {\n  domains(input: $input) {\n    exactMatch {\n      name\n      listPrice\n      lastSalePrice\n      tokenId\n      owner\n      network\n      orderSource\n      expirationDate\n      image\n      __typename\n    }\n    list {\n      name\n      listPrice\n      lastSalePrice\n      tokenId\n      owner\n      network\n      orderSource\n      expirationDate\n      image\n      __typename\n    }\n    pageInfo {\n      startCursor\n      endCursor\n      hasNextPage\n      __typename\n    }\n    __typename\n  }\n}"}
+
+            jsonRaw = json.dumps(payload)
+
+            # r =requests.get("https://space.id/tld/bnb?query=85828524")
+            r = requests.post("https://graphigo.prd.space.id/query", headers=headers, data=jsonRaw)
+
+            x = r.json()["data"]["domains"]["exactMatch"][0]["owner"]
+
+            if len(x) > 10:
+                # print(bnb + "已被注册")
+                pass
+            else:
+                print(bnb + "可以注册")
+                bnbs.append(bnb)
+            time.sleep(1)
+
+
+threads = []
+
+for id in ids:
+
+    T1 = threading.Thread(target=find,args=(id,))
+    T1.start()
+    threads.append(T1)
+
+
+for thread in threads:
+
+    thread.join()
+
+print(bnbs)
+with open("bnb.txt","a") as file:
+    file.write(bnbs)
