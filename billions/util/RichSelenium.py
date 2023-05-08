@@ -1,3 +1,5 @@
+import os
+import pickle
 import random
 import re
 import time
@@ -239,6 +241,8 @@ def getHeaders():
     driver.get('https://bot.sannysoft.com/')  # my own test test site with max anti-bot protection
     time.sleep(100)
 
+
+
 # getHeaders()
 #  OK
 def googleFanyi():
@@ -320,3 +324,44 @@ def googleTranslate():
 
     time.sleep(10)
 # googleTranslate()
+
+
+
+# urls ={1,3,2,4}
+#
+# with open('quotes-1.html', 'r',encoding='utf-8') as f:
+#     html = f.read()
+#     html=re.sub(r'原文链接','原地址',html)
+#     html=re.sub(r'<p>.*?原文.*?</p>','',html)
+#     print(html)
+#
+#     getall = Selector(text=group).xpath("//img/@src").getall()
+#
+#     for get in getall:
+#         url = re.search(r'"(.*?)"', get)
+#         print(url.group(1).rstrip('\\'))
+
+#
+# if os.path.getsize('urls.txt') > 0:
+#     with open('urls.txt', 'rb') as f:
+#         urls = pickle.load(f)
+
+
+
+import undetected_chromedriver as uc
+driver = uc.Chrome()
+driver.get('https://www.odaily.news/post/5186831')  # my own test test site with max anti-bot protection
+html = driver.page_source
+html=re.sub(r'<p>.*?原文.*?</p>','',html)
+html=re.sub(r'</h','/r/n/r/n/r/n/r/n</h',html)
+html=re.sub(r'":"','',html)
+res = re.search(r'content(.*?)",',html)
+
+
+group = res.group(1)
+if res and group:
+    print(group)
+    # result.extend(result1)
+    # print(result)
+
+

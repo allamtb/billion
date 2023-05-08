@@ -114,7 +114,7 @@ class CsvUtil:
 
 
 #  单例模式
-CsvUtil = CsvUtil()
+# CsvUtil = CsvUtil()
 #
 # print(CsvUtil.getCarList().index('极狐 阿尔法T'))
 # # #print(CsvUtil.getCarList())

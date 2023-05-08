@@ -123,7 +123,9 @@ class BillionsReplaceImage2PathPipeline(PipeLineFather):
 
     def process_the_item(self, item, spider):
         html_content = item.get("html_content")
-        tag = CsvUtil.findTag(htmlCount=html_content)
+
+        # tag = CsvUtil.findTag(htmlCount=html_content)  #TODO
+        tag = ""
         if len(tag) < 1:
             item["ikey"] = item.get("itit", " ")
         else:

@@ -121,5 +121,5 @@ class Dbtool:
 
 
 db = Dbtool()
-db.checkWjjFile("inews_hexun", "hexun")
+# db.checkWjjFile("inews_hexun", "hexun")
 # db.checkPage("baike_baidu_new", "baike")
