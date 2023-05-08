@@ -3,9 +3,8 @@ import re
 import pandas as pd
 import numpy as np
 
-from billions.util.RichSelenium import baidubaikeFix
+# from billions.util.RichSelenium import baidubaikeFix
 from billions.util.htmlUtil import getChineseWord
-
 
 class CsvUtil:
 
@@ -15,8 +14,9 @@ class CsvUtil:
         self.csv_data = pd.read_csv(path)
         self.brand_name_ = self.csv_data.loc[:, ["CarBrandName", "VendorName"]]
         self.VendorName = self.csv_data.loc[:, ["VendorName"]]
+        self.carName = self.csv_data.loc[:, ["CarBrandName"]]
 
-        print(self.brand_name_)
+        # print(self.brand_name_)
 
     def getVenderByCar(self,key):
 
@@ -76,12 +76,15 @@ class CsvUtil:
         return res
 
 
-    def getCar(self):
-
+    def getBrand(self):
         return  np.array(self.brand_name_).tolist()
     def getVender(self):
         vender = self.VendorName.drop_duplicates()
         return  np.array(vender).tolist()
+
+    def getCar(self):
+        vender = self.carName.drop_duplicates()
+        return np.array(vender).tolist()
 
     def fixCsvCarName(self):
         car = []
@@ -115,6 +118,10 @@ class CsvUtil:
 
 #  单例模式
 CsvUtil = CsvUtil()
+
+# print(CsvUtil.getCar())
+# print(CsvUtil.getVender())
+
 #
 # print(CsvUtil.getCarList().index('极狐 阿尔法T'))
 # # #print(CsvUtil.getCarList())

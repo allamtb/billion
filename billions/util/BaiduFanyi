@@ -23,18 +23,9 @@ lock = threading.Lock()
 class BaiduFanyi:
 
     def __init__(self, translateToZh=False):
-        # options = webdriver.ChromeOptions()
-        # # prefs = {"profile.managed_default_content_settings.images":2}
-        # # options.add_experimental_option("prefs",prefs)
-        # # options.add_argument("--enable-javascript")
-        # ua = UserAgent()
-        # options.add_argument('user-agent='+ua.random)
-        # options.add_argument('javascript.enabled')
-        # # options.add_argument('--headless')
-        # s = Service("F:\chromedriver.exe")
-        # self.driver = webdriver.Chrome(chrome_options=options)
-        self.driver = uc.Chrome()
 
+        self.driver = uc.Chrome()
+        self.translateToZh=translateToZh
         if translateToZh:
             self.driver.get("https://fanyi.baidu.com/#en/zh/")
         else:
@@ -50,30 +41,45 @@ class BaiduFanyi:
             print("不能关闭广告")
         
 
-    def fanyi(self, key):
+    def fanyi(self, key,delay=2):
 
-        self.driver.execute_script("window.scrollTo(0,0)", "")
-        self.elementInput = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.ID, 'baidu_translate_input')))
-        with lock:
-            pyperclip.copy(str(key))
-            self.elementInput.send_keys(Keys.CONTROL, 'v')
-        self.driver.execute_script("window.scrollTo(0,0)", "")
-        self.randomDelay()
-        self.out=  WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, '//div[@class="trans-right"]')))
-        self.result = self.out.text.replace("\n笔记\n双语对照", "")
-
-        if self.result is None or len(self.result) ==0 :
-            self.out = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@class="trans-right"]')))
-            self.result = re.sub("笔记([\s\S]*?)对照","",self.out.text)
         try:
-            WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'textarea-clear-btn'))).click()
+
+            self.elementInput = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.ID, 'baidu_translate_input')))
+            with lock:
+                pyperclip.copy(str(key))
+                self.elementInput.send_keys(Keys.CONTROL, 'v')
+            self.driver.execute_script("window.scrollTo(0,0)", "")
+            self.randomDelay(delay)
+            self.out=  WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, '//div[@class="trans-right"]')))
+            self.result = re.sub("笔记([\s\S]*?)对照", "", self.out.text)
+            if self.result is None or len(self.result) ==0 :
+                self.out = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, '//div[@class="trans-right"]')))
+                self.result = re.sub("笔记([\s\S]*?)对照", "", self.out.text)
+            try:
+                WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'textarea-clear-btn'))).click()
+            except:
+                self.driver.refresh()
+            time.sleep(1)
         except:
-            self.driver.refresh()
+            self.driver.quit()
+            self.randomDelay(delay=2)
+            self.driver = uc.Chrome()
+            if self.translateToZh:
+                self.driver.get("https://fanyi.baidu.com/#en/zh/")
+            else:
+                self.driver.get("https://fanyi.baidu.com/#zh/en/")
+            try:
+                self.element = WebDriverWait(self.driver, 5).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'app-guide-close')))
+                self.element.click()
+            except:
+
+                print("不能关闭广告")
         return self.result
 
-    def randomDelay(self):
-        delay = 2
+    def randomDelay(self,delay=2):
         ranDelay = random.uniform(1 * delay, 1.5 * delay)
         time.sleep(ranDelay)
 
@@ -84,27 +90,34 @@ class SogouFanyi:
         self.driver = uc.Chrome()
         self.driver.get("https://fanyi.sogou.com/")
 
-    def sogoufanyi(self,key):
-        self.driver.execute_script("window.scrollTo(0,0)", "")
-        elementInput = self.driver.find_element(By.ID, 'trans-input')
-        pyperclip.copy(str(key))
-        elementInput.send_keys(Keys.CONTROL, 'v')
-        self.randomDelay()
-        result = Selector(text=self.driver.page_source).xpath("//span[@class='trans-sentence']//text()").getall()
-        if len(result) == 0:
-            result = Selector(text=self.driver.page_source).xpath("//p[@id='output-placeholder']//text()").getall()
-        result1 = "".join(result)
-        WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, '//span[@class="btn-clear"]'))).click()
-        self.randomDelay()
-        return result1
+    def fanyi(self,key,delay=2):
+        try:
+            self.driver.execute_script("window.scrollTo(0,0)", "")
+            elementInput = self.driver.find_element(By.ID, 'trans-input')
+            with lock:
+                pyperclip.copy(str(key))
+                elementInput.send_keys(Keys.CONTROL, 'v')
+            time.sleep(3)
+            result = Selector(text=self.driver.page_source).xpath("//span[@class='trans-sentence']//text()").getall()
+            if len(result) == 0:
+                result = Selector(text=self.driver.page_source).xpath("//p[@id='output-placeholder']//text()").getall()
+            result1 = "".join(result)
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//span[@class="btn-clear"]'))).click()
+            time.sleep(2)
+            return result1
+        except:
+            self.driver.quit()
+            self.driver = uc.Chrome()
+            self.driver.get("https://fanyi.sogou.com/")
+            return ""
 
-    def randomDelay(self):
-        delay = 2
+
+    def randomDelay(self, delay=1):
         ranDelay = random.uniform(1 * delay, 1.5 * delay)
         time.sleep(ranDelay)
 class YoudaoFanyi:
 
-    def __init__(self,index):
+    def __init__(self):
         import undetected_chromedriver as uc
         self.driver = uc.Chrome()
         self.driver.get("https://fanyi.youdao.com/index.html#")
@@ -112,8 +125,8 @@ class YoudaoFanyi:
              WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//img[@class="close"]'))).click()
         except:
             pass
-        self.index = index
-    def youdaofanyi(self,key):
+
+    def fanyi(self,key):
         elementInput = self.driver.find_element(By.ID, 'js_fanyi_input')
         pyperclip.copy(key)
         elementInput.send_keys(Keys.CONTROL, 'v')
@@ -129,9 +142,9 @@ class YoudaoFanyi:
             self.driver.execute_script("arguments[0].click();", clickbutton)
         except:
             self.driver.refresh()
-        return str(self.index)+"".join(result)
+        return "".join(result)
     def randomDelay(self):
-        delay = 2
+        delay = 4
         ranDelay = random.uniform(1 * delay, 1.5 * delay)
         time.sleep(ranDelay)
 
@@ -165,9 +178,9 @@ class GoogeFanyi:
 class FanYiProcessor:
 
     def __init__(self,tableName,translateToZh=False,useGoogle=False,projectLock=None):
-       self.threadCount = 5
+       self.threadCount =12
        self.tableName = tableName
-       self.queueDBData = Queue(maxsize=100)
+       self.queueDBData = Queue(maxsize=1000)
        self.translateToZh=translateToZh
        self.useGoogle = useGoogle
        self.counterLock = threading.Lock()
@@ -175,6 +188,7 @@ class FanYiProcessor:
        self.DBHandingTag = "handing"
        self.pbar = tqdm(total=100)
        self.projectLock = projectLock
+       self.theSet = set()
 
 
 
@@ -189,8 +203,15 @@ class FanYiProcessor:
             html,id = self.queueDBData.get()
             if(id == -1):
                 break
+
+            if id in self.theSet :
+                print("已存在该ID %s ",id)
+                continue
+
+            self.theSet.add(id)
             finalResult = ""
             # <img alt ="奥迪,大众,奔驰,世纪,现代" src="/eeimg/{HostI}/img/20230315224520305158/6.jpg "/>
+
             imgs = re.findall(r'(<img.*?>)', html)
             # 如果文章大于5000字，那么按5000字做分割为多组， 分割的时候，不能把<img > 整行给分割开了。
             htmls = splitHtmlBy5000(html)
@@ -203,9 +224,17 @@ class FanYiProcessor:
                     html = html.replace(img, newstr)
                 try :
                      resultBaidu = Fanyi.fanyi(html)
-                except:
+                     for i in range(3):
+                        if 'exception occurred ' in resultBaidu or '访问出现异常' in resultBaidu or len(resultBaidu) <= 5:
+                            time.sleep(2)
+                            resultBaidu = Fanyi.fanyi(html,2+i)
+                     if 'exception occurred ' in resultBaidu or '访问出现异常' in resultBaidu or len(resultBaidu) <= 5:
+                         break
+
+                except Exception  as ex:
+                    traceback.print_exc()
                     print("发生了异常")
-                    return None
+                    break
                 # 将文章中的图片临时新路径，替换回来。
                 for key in imgMap:
                     resultBaidu = resultBaidu.replace(key, imgMap[key])
@@ -222,12 +251,10 @@ class FanYiProcessor:
                     cur.execute(
                         "update " + self.tableName + " set ihtml_en = %s where id = %s", prarm)
                 con.commit()
-
                 with self.counterLock:
+                    # self.count = self.count+1
                     self.pbar.update(1)
-                    print(id)
-                    self.count =  self.count + 1
-
+            self.queueDBData.task_done()
 
     def produceDBword(self):
         con = MySQLdb.connect("localhost", "root", "billions", "billion")
@@ -246,15 +273,11 @@ class FanYiProcessor:
         for i,res in enumerate(fetchall):
             html = res[0]
             id = str(res[1])
-            # prarm = (self.DBHandingTag, int(id))
-            # # if self.translateToZh:
-            # #   cur.execute("update  "+self.tableName+" set ihtml_zh = %s where id = %s",prarm)
-            # # else:
-            # #   cur.execute("update  " + self.tableName + " set ihtml_en = %s where id = %s", prarm)
-            # # con.commit()
+            if  html is None or 'exception occurred ' in html or '访问出现异常' in html or len(html) <= 5:
+                cur.execute("update " + self.tableName + " set ihtml_en = null  where id = " + id)
+                continue
+            html = html.replace("< img", "<img")
             self.queueDBData.put((html, id),block=True)
-
-
 
     def run(self):
         with self.projectLock:
@@ -272,8 +295,29 @@ class FanYiProcessor:
 
 ProjectLock = threading.Lock()
 
-# fanyi = FanYiProcessor(tableName="inews_xcar",translateToZh=False,useGoogle=False,projectLock =ProjectLock)
+# fanyi = FanYiProcessor(tableName="inews_d1ev",translateToZh=False,useGoogle=False,projectLock =ProjectLock)
 # fanyi.run()
 
-fanyiZh = FanYiProcessor(tableName="inews_xcar",translateToZh=True,useGoogle=False,projectLock =ProjectLock)
+fanyiZh = FanYiProcessor(tableName="inews",translateToZh=False,useGoogle=False,projectLock =ProjectLock)
 fanyiZh.run()
+
+#
+# con = MySQLdb.connect("localhost", "root", "billions", "billion")
+# cur = con.cursor()
+# print("查询总数 ===============")
+# res = cur.execute(
+#         "select ihtml_en,id  from  inews_d1ev ")
+# pbar = tqdm(total=res)
+# fetchall = cur.fetchall()
+# for i, res in enumerate(fetchall):
+#     id = str(res[1])
+#     html = res[0]
+#     pbar.update(1)
+#     if html is None or 'exception occurred ' in html or '访问出现异常' in html or len(html) <= 5:
+#         cur.execute("update inews_d1ev set ihtml_en = null  where id = " + id)
+#         continue
+#     htmlNew = re.sub("/img/.{1,10}?/img/", "/img/",html)
+#     if htmlNew != html:
+#         cur.execute("update inews_d1ev set ihtml_en = %s where id = %s",(htmlNew,id))
+#     con.commit()
+
