@@ -10,7 +10,7 @@ from scrapy.selector import Selector
 from scrapy_selenium import SeleniumRequest
 
 from billions.items import D1evItem
-from billions.util.RegexUtil import fixCsv
+# from billions.util.RegexUtil import fixCsv
 from billions.util.RichSelenium import baidubaike
 from billions.util.csvUtil import CsvUtil
 from billions.util.DBTool import db

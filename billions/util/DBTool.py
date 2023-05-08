@@ -5,8 +5,7 @@ from loguru import logger
 import MySQLdb
 import re
 from tqdm import tqdm
-from billions.util.Accdb import Accdb
-from billions.util.csvUtil import CsvUtil
+
 logger.add(f"./log/dbtool.log", level="ERROR", rotation="100MB", encoding="utf-8", enqueue=True,
            retention="10 days")
 class Dbtool:
@@ -48,7 +47,6 @@ class Dbtool:
                 if delete:
                     shutil.rmtree(path/item)
         print(f"存在{count}条文件夹在数据库中不存在")
-
 
 
     # handling 为9位数 900001111
@@ -205,7 +203,5 @@ class Dbtool:
             accdb.commit()
 
 db = Dbtool()
-db.lei()
-# db.checkWjjFile("inews_hexun", "hexun")
+db.checkWjjFile("inews_hexun", "hexun")
 # db.checkPage("baike_baidu_new", "baike")
-
