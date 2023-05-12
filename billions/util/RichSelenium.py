@@ -2,6 +2,7 @@ import os
 import pickle
 import random
 import re
+import sys
 import time
 import MySQLdb
 import pyperclip
@@ -349,19 +350,80 @@ def googleTranslate():
 
 
 import undetected_chromedriver as uc
-driver = uc.Chrome()
-driver.get('https://www.odaily.news/post/5186831')  # my own test test site with max anti-bot protection
+
+
+options = webdriver.ChromeOptions()
+# prefs = {"profile.managed_default_content_settings.images":2}
+# options.add_experimental_option("prefs",prefs)
+options.add_argument("--enable-javascript")
+# options.add_argument('user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"')
+options.add_argument('javascript.enabled')
+# options.add_argument('--headless')
+# s = Service("F:\chromedriver.exe")
+driver = webdriver.Chrome(chrome_options=options)
+#driver = uc.Chrome()
+driver.get('https://www.suitechsui.org/zh-CN/feed')  # my own test test site with max anti-bot protection
+#driver.get('https://blog.csdn.net/MarkAdc/article/details/107204126')  # my own test test site with max anti-bot protection
 html = driver.page_source
-html=re.sub(r'<p>.*?原文.*?</p>','',html)
-html=re.sub(r'</h','/r/n/r/n/r/n/r/n</h',html)
-html=re.sub(r'":"','',html)
-res = re.search(r'content(.*?)",',html)
+print(html)
+time.sleep(2)
+height = 300
+elementInput = WebDriverWait(driver, 5). \
+        until(EC.visibility_of_element_located((By.XPATH, '/html/body')))
+elementInput.click()
+html = ""
+for i in range(100000):
 
+    # height = height+ i*300
+    print(f"scroll {i}")
 
-group = res.group(1)
-if res and group:
-    print(group)
-    # result.extend(result1)
-    # print(result)
+    try:
+        #     bClose = WebDriverWait(driver, 5). \
+        #         until(EC.visibility_of_element_located((By.XPATH, '//button[class="pswp__button pswp__button--close"]')))
+        #     bClose.click()
+        # except:
+        #     pass
+        if i%10 == 0:
+            delay = 3
+            ranDelay = random.uniform(0.5 * delay, 1.5 * delay)
+            time.sleep(ranDelay)
+            # elementInput.click()
+            elementInput.send_keys(Keys.PAGE_UP)
+            elementInput.send_keys(Keys.PAGE_UP)
+        time.sleep(0.618)
+        elementInput.send_keys(Keys.PAGE_DOWN)
+        newHtml = driver.page_source
+        if newHtml != html:
+            print("有新内容")
+        else:
+            print("无新内容")
+        html = driver.page_source
+
+        driver.execute_script("alert(document.body.scrollHeight)")
+        driver.execute_script("alert(document.body.getBoundingClientRect().top)")
+
+        # print(html)
+
+    except :
+        print(sys.exc_info())
+
+    # driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    # driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    # driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    # driver.execute_script("alert(1)")
+    #driver.execute_script(f"window.scrollBy(0,{height})")
+
+time.sleep(100)
+# html=re.sub(r'<p>.*?原文.*?</p>','',html)
+# html=re.sub(r'</h','/r/n/r/n/r/n/r/n</h',html)
+# html=re.sub(r'":"','',html)
+# res = re.search(r'content(.*?)",',html)
+#
+#
+# group = res.group(1)
+# if res and group:
+#     print(group)
+#     # result.extend(result1)
+#     # print(result)
 
 
