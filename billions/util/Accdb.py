@@ -2,7 +2,7 @@ import pypyodbc
 
 
 class Accdb:
-    def __init__(self, path):
+    def  __init__(self, path):
         """Class for communication with Access DB
         :param path: Access DB absolute file path"""
         pypyodbc.lowercase = False
@@ -65,10 +65,12 @@ class Accdb:
     def table_header(self, table):
         return self.qry_header(f"SELECT * FROM {table};")
 
-
-path = r"F:\billionsData\kong.com.accdb"
-qry_select = "SELECT * FROM inews;"
-# Classic way
-db = Accdb(path)
-db.execute(qry_select)
-print(db.query(qry_select))
+#
+# path = r"F:\billionsData\kong_bak.com.accdb"
+# # qry_select = "insert into inews (sname,itit,ihtml,rq,px,itime,wjj,lai,h1,ikey,imiao,biaoq,xian) values ()"
+# qry_select = "insert into inews (sname,itit) values ('test','itit')"
+# # Classic way
+# db = Accdb(path)
+# # db.execute(qry_select)
+# db.execute(qry_select)
+# db.commit()

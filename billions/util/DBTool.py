@@ -6,6 +6,9 @@ import MySQLdb
 import re
 from tqdm import tqdm
 
+from billions.util.Accdb import Accdb
+from billions.util.csvUtil import CsvUtil
+
 logger.add(f"./log/dbtool.log", level="ERROR", rotation="100MB", encoding="utf-8", enqueue=True,
            retention="10 days")
 class Dbtool:
@@ -118,7 +121,89 @@ class Dbtool:
                 cur.execute("update  "+table+" set handling = "+handling+" where url = %s", prarm)
                 con.commit()
 
+    def moveTable(self):
+        from loguru import logger
+        logger.add(f"dbmove.log", level="INFO", rotation="100MB", encoding="utf-8", enqueue=True, retention="10 days")
+        con = MySQLdb.connect("localhost", "root", "billions", "billion")
 
+        accdbId = 1
+        cur = con.cursor()
+        path = r"F:\billionsData\kong.com_list_"+ str(accdbId)+".accdb"
+        accdb = Accdb(path)
+
+        tables = ["inews_xcar","inews_huanqiu","inews_hexun","inews_gasgoo","inews_d1ev","inews_autotimes","inews_autohome","inews"]
+        itemCount = 1
+
+        for table in tables:
+            print(table)
+            cur.execute(
+                "select sname,lei11,lei22,itit,ihtml,rq,px,wjj,wjj,lai,h1,ikey,imiao,biaoq,xian,ihtml_zh from " + table)
+            fetchall = cur.fetchall()
+            pbar = tqdm(total= cur.rowcount)
+            for i,res in enumerate(fetchall):
+                itemCount = itemCount+1
+                if itemCount % 60000 == 0:
+                    try:
+                        accdb.close()
+                        accdbId = accdbId+1
+                        cur = con.cursor()
+                        path = r"F:\billionsData\kong.com_list_" + str(accdbId) + ".accdb"
+                        accdb = Accdb(path)
+                    except:
+                        pass
+                sname = res[0]
+                lei11 = res[1]
+                lei22 = res[2]
+                itit  = res[3]
+                ihtml = res[4]
+                rq = res[5]
+                px = res[6]
+                itme = res[7]
+                wjj = res[8]
+                lai = res[9]
+                h1 = res[10]
+                ikey = res[11]
+                imiao = res[12]
+                biaoq = res[13]
+                xian = res[14]
+                ihtml_zh = res[15]
+
+
+                if ihtml_zh is None:
+                    ihtml_zh = ihtml
+                if itit is None or ihtml_zh is None or ikey is None or imiao is None or biaoq is None:
+                    continue
+
+                ihtml_zh = ihtml_zh.replace("'", "''")
+                imiao = imiao.replace("'", "''")
+                itit = itit.replace("'", "''")
+                qry_select =""
+                try:
+                    qry_select = "insert into inews (itit,ihtml,wjj,ikey,imiao,biaoq) values ('%s','%s','%s','%s','%s','%s')"%(itit,ihtml_zh,wjj,ikey,imiao,biaoq)
+                    accdb.execute(qry_select)
+                    accdb.commit()
+                    pbar.update(1)
+                except Exception  as ex:
+                    print(qry_select)
+                    print(ex)
+        accdb.close()
+
+    def lei(self):
+        pass
+        path = r"F:\billionsData\kong.com.accdb"
+        accdb = Accdb(path)
+
+        carList = CsvUtil.getCar()
+        for car in carList:
+            qry_select = "insert into lei (lei11,yiid) values ('%s','%s')" % (car[0],1)
+            accdb.execute(qry_select)
+            accdb.commit()
+
+        venderList =CsvUtil.getVender()
+        for vender in venderList:
+            qry_select = "insert into lei (lei11,yiid) values ('%s','%s')" % (vender[0],0)
+            accdb.execute(qry_select)
+            accdb.commit()
 
 db = Dbtool()
 # db.checkWjjFile("inews_hexun", "hexun")
