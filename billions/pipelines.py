@@ -265,14 +265,15 @@ class BillionsDBPipeline(PipeLineFather):
         params.append(item.get("itit", " "))
         params.append(item.get("html_content", " "))
         # 只有当图片下载成功的时候，图片的wjj才需要入数据库。
-        imageDownLoad = False
-        for image in item.get('images'):
-            if (image['status'] == 'downloaded'):
-                imageDownLoad = True
-        if imageDownLoad:
-            params.append(item.get("wjj", " "))
-        else:
-            params.append(" ")
+        # imageDownLoad = False
+        # for image in item.get('images'):
+        #     if (image['status'] == 'downloaded'):
+        #         imageDownLoad = True
+        # if imageDownLoad:
+        #     params.append(item.get("wjj", " "))
+        # else:
+        #     params.append(" ")
+        params.append(item.get("wjj", " "))
         params.append(item.get("ikey", " "))
         params.append(item.get("imiao", " ").replace("'", "''"))
         params.append(item.get("biaoq", " "))

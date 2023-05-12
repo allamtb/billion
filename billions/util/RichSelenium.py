@@ -239,7 +239,7 @@ def getHeaders():
     driver.get('https://bot.sannysoft.com/')  # my own test test site with max anti-bot protection
     time.sleep(100)
 
-getHeaders()
+# getHeaders()
 #  OK
 def googleFanyi():
     con = MySQLdb.connect("localhost", "root", "billions", "billion")
@@ -343,20 +343,20 @@ def googleTranslate():
 #         urls = pickle.load(f)
 
 
-
-import undetected_chromedriver as uc
-driver = uc.Chrome()
-driver.get('https://www.odaily.news/post/5186831')  # my own test test site with max anti-bot protection
-html = driver.page_source
-html=re.sub(r'<p>.*?原文.*?</p>','',html)
-html=re.sub(r'</h','/r/n/r/n/r/n/r/n</h',html)
-html=re.sub(r'":"','',html)
-res = re.search(r'content(.*?)",',html)
-
-
-group = res.group(1)
-if res and group:
-    print(group)
+#
+# import undetected_chromedriver as uc
+# driver = uc.Chrome()
+# driver.get('https://www.odaily.news/post/5186831')  # my own test test site with max anti-bot protection
+# html = driver.page_source
+# html=re.sub(r'<p>.*?原文.*?</p>','',html)
+# html=re.sub(r'</h','/r/n/r/n/r/n/r/n</h',html)
+# html=re.sub(r'":"','',html)
+# res = re.search(r'content(.*?)",',html)
+#
+#
+# group = res.group(1)
+# if res and group:
+#     print(group)
     # result.extend(result1)
     # print(result)
 

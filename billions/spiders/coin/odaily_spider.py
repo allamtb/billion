@@ -1,7 +1,11 @@
 import os
+import random
 import re
 import time
+import traceback
 from pathlib import Path
+
+import requests
 import scrapy
 from loguru import logger
 from scrapy import Selector
@@ -30,7 +34,7 @@ class OdailySpider(scrapy.Spider):
         'DOWNLOAD_DELAY': 0.1,  # delay in downloading images
         'RANDOMIZE_DOWNLOAD_DELAY': True,  # delay in downloading images
         'AUTOTHROTTLE_MAX_DELAY': 10,
-        'AUTOTHROTTLE_TARGET_CONCURRENCY': 10,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 2 ,
         'LOG_ENABLED': True,  # 是否启动日志记录，默认True
         'LOG_FILE': 'log/'+name+'Error.log',  # 日志输出文件，如果为NONE，就打印到控制台
         'LOG_LEVEL': 'ERROR',  # 日志级别，默认debug
@@ -41,66 +45,72 @@ class OdailySpider(scrapy.Spider):
 
     # 如果需要重新跑程序，那么需要把urls.txt 删除重建
     urlsFile =  Path().absolute()/'spiders'/'coin'/'urls.txt'
-
     # allowe_do
     def start_requests(self):
         if os.path.getsize(self.urlsFile) > 0:
             with open(self.urlsFile, 'rb') as f:
                 self.urls = pickle.load(f)
-        import undetected_chromedriver as uc
-        driver = uc.Chrome()
-        driver.get(self.baseUrl)
-        errorTime = 0
-        times = 10000000
-        pbar = tqdm(total=times)
-        for i in range(times):
-            result = Selector(text=driver.page_source).xpath('//div[@class="iZVHKqX_"]').getall()
-            result1 = Selector(text=driver.page_source).xpath('//div[@class="_1I8wgn0k"]').getall()
-            result.extend(result1)
-            for rs in result:
-                selector = Selector(text=rs)
-                url = ""
-                title = ""
-                homeTu = ""
-                if "_3OxLPO8K" in rs:
-                    url = selector.xpath("//a/@href").get()
-                    title = selector.xpath("//div[@class='_2-YXSDjv']/text()").get()
-                    imiao = selector.xpath("//div[@class='_35gCv5dI']/text()").get()
-                    homeTu = "none"
-                elif "_1I8wgn0k" in rs:
-                    url = selector.xpath("//a/@href").get()
-                    title = selector.xpath("//h3[@class='_1__EitIA']/text()").get()
-                    imiao = selector.xpath("//p[@class='_3YfETPl3']/text()").get()
-                    homeTu = selector.xpath("//img/@src").get()
-
-                if url in self.urls:
-                    continue
-                else:
-                    self.urls.add(url)
-                    with open(self.urlsFile,'wb') as f:
-                        pickle.dump(self.urls,f)
-                d1evItem = D1evItem()
-                d1evItem['image_path'] = self.name
-                d1evItem['page'] = url
-                d1evItem['itit'] = title
-                newsUrl = urljoin(self.baseUrl,url)
-                d1evItem['newsUrl'] = newsUrl
-                if "none" not in homeTu:
-                    d1evItem['homeTuUrl'] = urljoin(self.baseUrl,homeTu)
-                logger.info("yield url: %s"%newsUrl)
-                yield SeleniumRequest(url=newsUrl, callback=self.parseNews, screenshot=False, dont_filter=True, wait_time=2,meta={"item": d1evItem})
+        maxId = 0
+        count = 0
+        currentId = 1000000
+        isNeedBreak = False
+        while True:
 
             try:
-                WebDriverWait(driver, 10). \
-                    until(EC.visibility_of_element_located((By.XPATH, '//p[@class="_2fq3alzs"]'))).click()
-                driver.execute_script('window.scrollTo(0, document.body.scrollHeight)')
-                time.sleep(4)
+                # jsonRaw = json.dumps(payload)
+                r = requests.get(
+                    f"https://www.odaily.news/api/pp/api/app-front/feed-stream?feed_id=280&b_id={currentId}&per_page=20")
+                # r = requests.post("https://www.odaily.news/api/pp/api/app-front/feed-stream?feed_id=280&b_id=280254&per_page=20", headers=headers)
+                list = r.json()["data"]["items"]
+                for l in list:
+                    cover = l["web_cover"]
+                    id = l["id"]
+                    if count == 0:
+                        maxId = id
+
+                    currentId = id
+                    print(f"id {id}、maxId{maxId}、 count {count}")
+                    if count > 0 and id == maxId or id <= 100000:
+                        print(f"error  id {id}、maxId{maxId}、 count {count}")
+                        isNeedBreak = True
+                    title = l["title"]
+                    url = "https://www.odaily.news/post/" + str(l["entity_id"])
+
+                    theUrl = "/post/" + str(l["entity_id"])
+                    if theUrl in self.urls:
+                        print(theUrl+"   existed")
+                        continue
+                    else:
+                        self.urls.add(theUrl)
+                        with open(self.urlsFile,'wb') as f:
+                            pickle.dump(self.urls,f)
+
+
+                    imiao = l["summary"]
+                    print(f"{cover} {title}  {url} {imiao}")
+                    count = count + 1
+
+                    d1evItem = D1evItem()
+                    d1evItem['image_path'] = self.name
+                    d1evItem['page'] = url
+                    d1evItem['itit'] = title
+                    d1evItem['imiao'] = imiao
+                    d1evItem['newsUrl'] = url
+                    if "none" not in cover or len(cover)>0:
+                        d1evItem['homeTuUrl'] = cover
+                    logger.info("yield url: %s" % url)
+                    yield SeleniumRequest(url=url, callback=self.parseNews, screenshot=False, dont_filter=True,
+                                          wait_time=2,
+                                          meta={"item": d1evItem})
             except:
-                errorTime  = errorTime+1
-                print(f"错误 errorTime 次")
-                if(errorTime ==100):
-                    break
-            pbar.update(1)
+
+                traceback.print_exc()
+
+            if isNeedBreak:
+                break
+            print(f"currentId {currentId}")
+            logger.info(f"currentId {currentId}")
+            time.sleep(5)
 
     def parseNews(self, response):
         d1evItem = response.meta["item"]
@@ -144,5 +154,5 @@ class OdailySpider(scrapy.Spider):
         # 如果没有 title 以及 html 就不要生成内容了。
         if len(html_content) <=0 or len(d1evItem['itit']) <= 0:
             return
-        logger.info("    yield newsItem: %s" %dict(d1evItem))
+        # logger.info("    yield newsItem: %s" %dict(d1evItem))
         yield d1evItem

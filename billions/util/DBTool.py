@@ -6,6 +6,9 @@ import MySQLdb
 import re
 from tqdm import tqdm
 
+from billions.util.Accdb import Accdb
+from billions.util.csvUtil import CsvUtil
+
 logger.add(f"./log/dbtool.log", level="ERROR", rotation="100MB", encoding="utf-8", enqueue=True,
            retention="10 days")
 class Dbtool:
@@ -203,5 +206,5 @@ class Dbtool:
             accdb.commit()
 
 db = Dbtool()
-db.checkWjjFile("inews_hexun", "hexun")
+# db.checkWjjFile("inews_hexun", "hexun")
 # db.checkPage("baike_baidu_new", "baike")
